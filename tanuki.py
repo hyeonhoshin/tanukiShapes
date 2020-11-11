@@ -14,7 +14,7 @@ class ShapeDetector:
 		patch = img[y:y+h,x:x+w]
 		# plt.imshow(patch, cmap='gray')
 		# plt.show()
-		self.patch = cv2.resize(patch,dsize=(300,300))
+		self.patch = cv2.resize(patch,dsize=(300,300),interpolation=cv2.INTER_CUBIC)
 		
 	def detect_img(self, img):
 		# img : Grayscaled img
@@ -23,6 +23,7 @@ class ShapeDetector:
 		cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
 			cv2.CHAIN_APPROX_SIMPLE)
 		cnts = imutils.grab_contours(cnts)
+		self.destrained(img,cnts[0])
 		label = self.detect(cnts[0]) # only one shape
 
 		return label
@@ -43,19 +44,14 @@ class ShapeDetector:
 		# if the shape is a pentagon, it will have 5 vertices
 		elif len(approx) == 5:
 			shape = 3
-		# otherwise, we assume the shape is a circle
-		elif len(approx) > 20:
-			shape = 4
 		else:
-			ellipse = cv2.fitEllipse(c)
-			a = ellipse[1][0]
-			b = ellipse[1][1]
-			est_area = np.pi * a *b /4
-			est_peri = np.pi*np.sqrt((a**2 + b**2)/2)
-			ratio_a = est_area/self.area
-			ratio_p = est_peri/peri
-			#print("ratio =",est_area/self.area)
-			if (0.98 < ratio_a and ratio_a <= 1/0.98) and (0.90 < ratio_p and ratio_p <= 1/0.90):
+			area = np.sum(self.patch<=30)
+			r = 150
+			# Area check
+			perfect_c_area = (r**2)*np.pi
+			ratio = area/perfect_c_area
+
+			if 0.95 <= ratio and ratio <= 1/0.95:
 				shape = 0
 			else:
 				shape = 4
