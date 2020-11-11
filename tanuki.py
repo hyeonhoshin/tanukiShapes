@@ -22,12 +22,10 @@ class ShapeDetector:
 		self.area = np.sum(self.patch)
 		self.canny = canny/255.0
 		self.peri = np.sum(self.canny)
-
 		
 	def detect_img(self, img):
 		# img : Grayscaled img
 		thresh = cv2.threshold(img, 60, 255, cv2.THRESH_BINARY_INV)[1] # 255, 255, 255 ... -> 0, 0, 0, 255... 
-		self.area = np.sum(thresh==255)
 		cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
 			cv2.CHAIN_APPROX_SIMPLE)
 		cnts = imutils.grab_contours(cnts)
@@ -55,7 +53,6 @@ class ShapeDetector:
 		elif len(approx) <= 7:
 			shape = 4
 		else:
-
 
 			area = np.sum(self.patch)
 			r = 150
