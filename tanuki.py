@@ -1,6 +1,7 @@
 # import the necessary packages
 import cv2
 import imutils
+import matplotlib.pyplot as plt
 
 class ShapeDetector:
 	def __init__(self):
@@ -9,7 +10,9 @@ class ShapeDetector:
 		# img : Grayscaled img, white backgrounded is no matter
 		# Output : Straining imgs are processed
 		x, y, w, h = cv2.boundingRect(cnt)
-		patch = img[x:x+w,y:y+h]
+		patch = img[y-2:y+h+2,x-2:x+w+2]
+		# plt.imshow(patch, cmap='gray')
+		# plt.show()
 		return cv2.resize(patch,dsize=(300,300))
 		
 	def detect_img(self, img):
