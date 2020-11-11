@@ -18,21 +18,15 @@ cnts = imutils.grab_contours(cnts)
 
 sd = tanuki.ShapeDetector()
 img = sd.destrained(imgOri,cnts[0])
-
-plt.imshow(img, cmap='gray')
-plt.show()
-
 img = cv2.threshold(img,90,255,cv2.THRESH_BINARY_INV)[1]
-img = cv2.medianBlur(img, 5)
 
-circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 10,param1=100,param2=5000,minRadius=1, maxRadius=140)
+area = np.sum(img==255)
+r = 150
+# Area check
+perfect_c_area = (r**2)*np.pi
+ratio = area/perfect_c_area
 
-circles = np.uint16(np.around(circles))
-
-for i in circles[0,:]:
-    cv2.circle(cimg,(i[0],i[1]),i[2],(0,255,0),2)
-    cv2.circle(cimg,(i[0],i[1]),2,(0,0,255),3)
-
-cv2.imshow('img', cimg)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+if 0.95 <= ratio and ratio <= 1/0.95:
+    print("This is a circle")
+else:
+    print("This is not a circle")

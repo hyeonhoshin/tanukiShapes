@@ -9,10 +9,11 @@ train_dir = './shapes'
 shape_list = ['circle', 'triangle', 'tetragon', 'pentagon', 'other']
 
 # function to make classifier
-def classify(images):
+def classify(images, labels):
     sd = tanuki.ShapeDetector()
     preds = []
-    for img in images:
+    for i, img in enumerate(images):
+        print("Check ...",labels[i])
         pred = sd.detect_img(img)
         preds.append(pred)
     return np.array(preds)
@@ -28,7 +29,7 @@ if __name__ == '__main__':
 
     print('Number of training images: ', len(train_images))
 
-    pred_labels = classify(train_images)
+    pred_labels = classify(train_images, train_labels)
 
     # Calculate accuracy (Do not erase or modify here)
     pred_acc = np.sum(pred_labels==train_labels)/len(train_labels)*100
