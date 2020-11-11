@@ -17,8 +17,6 @@ def classify(images):
         preds.append(pred)
     return np.array(preds)
 
-
-
 if __name__ == '__main__':
     #iterate through each shape
     for shape in shape_list:

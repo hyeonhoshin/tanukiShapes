@@ -40,8 +40,9 @@ class ShapeDetector:
 		elif len(approx) == 5:
 			shape = 3
 		# otherwise, we assume the shape is a circle
+		elif len(approx) > 20:
+			shape = 4
 		else:
 			shape = 0
-			# Other classifer add after.
 		# return the name of the shape
 		return shape
