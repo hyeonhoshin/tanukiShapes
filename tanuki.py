@@ -14,7 +14,15 @@ class ShapeDetector:
 		patch = img[y:y+h,x:x+w]
 		# plt.imshow(patch, cmap='gray')
 		# plt.show()
-		self.patch = cv2.resize(patch,dsize=(300,300),interpolation=cv2.INTER_CUBIC)
+		out = cv2.resize(patch,dsize=(300,300),interpolation=cv2.INTER_CUBIC)
+		out = np.array(out)
+		canny = cv2.Canny(out, 100, 255)
+		out = (255-out)/255.0
+		self.patch = out
+		self.area = np.sum(self.patch)
+		self.canny = canny/255.0
+		self.peri = np.sum(self.canny)
+
 		
 	def detect_img(self, img):
 		# img : Grayscaled img
@@ -32,7 +40,7 @@ class ShapeDetector:
 		# initialize the shape name and approximate the contour
 		shape = 4
 		peri = cv2.arcLength(c, True)
-		approx = cv2.approxPolyDP(c, 0.01 * peri, True)
+		approx = cv2.approxPolyDP(c, 0.008 * peri, True)
 
         # if the shape is a triangle, it will have 3 vertices
 		if len(approx) == 3:
@@ -44,14 +52,23 @@ class ShapeDetector:
 		# if the shape is a pentagon, it will have 5 vertices
 		elif len(approx) == 5:
 			shape = 3
+		elif len(approx) <= 7:
+			shape = 4
 		else:
-			area = np.sum(self.patch<=30)
+
+
+			area = np.sum(self.patch)
 			r = 150
 			# Area check
 			perfect_c_area = (r**2)*np.pi
 			ratio = area/perfect_c_area
 
-			if 0.95 <= ratio and ratio <= 1/0.95:
+			pred_peri = self.peri
+			perfect_peri = 2*np.pi*150
+
+			ratio_peri = pred_peri/perfect_peri
+
+			if (0.95 <= ratio and ratio <= 1/0.95) and ratio_peri<1.3:
 				shape = 0
 			else:
 				shape = 4
