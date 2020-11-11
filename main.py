@@ -4,14 +4,14 @@ import os
 from skimage.measure import regionprops
 from skimage.transform import *
 from sklearn.model_selection import train_test_split
-from augument import Augument
+from augument import *
 
 #create lists to save the labels (the name of the shape)
 train_labels, train_images = [],[]
 train_dir = './shapes'
 shape_list = ['circle', 'triangle', 'tetragon', 'pentagon', 'other']
 
-aug_num = 1000 # x100 dataset
+aug_num = 10 # x100 dataset
 
 #function to preprocess data
 def preprocess(images, labels, augment=False):
@@ -48,6 +48,22 @@ def preprocess(images, labels, augment=False):
 
         images = np.array(out_imgs)
         labels = np.array(out_labels)
+    else:
+        out_imgs = []
+        out_labels = []
+        
+        for i in range(images.shape[0]):
+            img = images[i]
+            roi = find_ROI(img)
+            roi = cv2.threshold(roi, 60, 255, cv2.THRESH_BINARY_INV)[1]
+            img = cv2.resize(roi,dsize=(300,300))
+            # plt.imshow(img)
+            # plt.show()
+            out_imgs.append(img)
+            out_labels.append(labels[i])
+
+        images = np.array(out_imgs)
+        labels = np.array(out_labels)
 
     images = images.reshape(len(images), dataDim)
     images = images.astype('float32')
@@ -66,7 +82,7 @@ def classify(images, labels):
     :return: classifier model
     """
     from sklearn.neighbors import KNeighborsClassifier
-    neigh = KNeighborsClassifier(n_neighbors=3)
+    neigh = KNeighborsClassifier(n_neighbors=10)
     neigh.fit(images, labels)
     return neigh
 

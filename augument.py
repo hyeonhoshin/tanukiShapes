@@ -6,19 +6,7 @@ import random
 from numpy import all, any
 
 def Augument(img):
-    # Separate ROI
-    blurred = cv2.GaussianBlur(img, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY_INV)[1]
-
-    ## Find ROI
-    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-	cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    cnt = cnts[0]
-
-    x,y,w,h = cv2.boundingRect(cnt)
-
-    ROI = img[x-1:x+w+1,y-1:y+h+1]
+    ROI = find_ROI(img)
 
     # plt.imshow(ROI,cmap='gray')
     # plt.show()
@@ -67,3 +55,19 @@ def Augument(img):
     # plt.show()
 
     return img_out
+
+def find_ROI(img):
+    blurred = cv2.GaussianBlur(img, (5, 5), 0)
+    thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY_INV)[1]
+
+    ## Find ROI
+    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE)
+    cnts = imutils.grab_contours(cnts)
+    cnt = cnts[0]
+
+    x,y,w,h = cv2.boundingRect(cnt)
+
+    ROI = img[x-1:x+w+1,y-1:y+h+1]
+    return ROI
+
