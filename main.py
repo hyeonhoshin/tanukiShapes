@@ -76,6 +76,9 @@ def preprocess(images, labels):
     """
     Extract Scale, Rotation invariant features.
     Number of vertices, area of patches, perimeter of patches
+
+    Input : images(N x width x height), labels(0~4 tuples)
+    Output : features(3 x N), labels(0~4 tuples)
     """
 
     areas = []
