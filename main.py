@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
 import os
-import imutils
-import matplotlib.pyplot as plt
 
 # create lists to save the labels (the name of the shape)
 train_labels, train_images = [], []
@@ -122,7 +120,7 @@ def classify(features):
 
     preds = []
     for i, num_vertices in enumerate(vertices):
-        print("Classfies in...",i)
+        # print("Classfies in...",i)
         
         if num_vertices == 3: # Triangle
             shape = 1
@@ -169,12 +167,15 @@ if __name__ == '__main__':
     features, train_labels = preprocess(train_images, train_labels)
     pred_labels = classify(features)                                    # Rule-based method do not need training step.
 
+    print("Predicted lables :",pred_labels)
+
     # Calculate accuracy (Do not erase or modify here)
     pred_acc = np.sum(pred_labels==train_labels)/len(train_labels)*100
     print("Accuracy = {}".format(pred_acc))
 
-    # TA code which is available in this code.
-    """forTA (Do not erase here)
+    # Pre-made TA code which I made for convenience.
+    """
+    # forTA (Do not erase here)
     test_dir = '../ForTA'
     test_labels, test_images = [], []
     for shape in shape_list:
