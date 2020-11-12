@@ -2,21 +2,44 @@ import cv2
 import numpy as np
 import os
 import imutils
+import matplotlib.pyplot as plt
 
 # create lists to save the labels (the name of the shape)
 train_labels, train_images = [], []
 train_dir = './shapes'
 shape_list = ['circle', 'triangle', 'tetragon', 'pentagon', 'other']
 
+patch_size = 32
+
 def destrained(img, cnt):
     # img : Grayscaled img, white backgrounded is no matter
     # Output : Straining imgs are processed
-    x, y, w, h = cv2.boundingRect(cnt)
-    patch = img[y:y+h, x:x+w]
-    # plt.imshow(patch, cmap='gray')
+
+    img = 255-img #Inverse image
+
+    center, size, angle = cv2.minAreaRect(cnt)
+
+    R = cv2.getRotationMatrix2D(center, angle, scale=1)
+    img_rotated = cv2.warpAffine(img, R, (300, 300))
+
+    cnts = cv2.findContours(img_rotated.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = imutils.grab_contours(cnts)
+
+    x,y,w,h = cv2.boundingRect(cnts[0])
+    img = img_rotated[y:y+h, x:x+w]
+
+    img = 255-img
+
+    # plt.imshow(img, cmap='gray')
     # plt.show()
-    out = cv2.resize(patch, dsize=(300, 300), interpolation=cv2.INTER_CUBIC)
+
+    out = cv2.resize(img, dsize=(patch_size, patch_size), interpolation=cv2.INTER_LINEAR)
     out = np.array(out)
+
+    out = cv2.bilateralFilter(out,9,100,100)
+    # plt.imshow(out, cmap='gray')
+    # plt.show()
+
     canny = cv2.Canny(out, 100, 255)/255.0
     out = (255-out)/255.0
 
@@ -52,6 +75,7 @@ def classify(features):
 
     preds = []
     for i, num_vertices in enumerate(vertices):
+        print("Classfies in...",i)
     # if the shape is a triangle, it will have 3 vertices
         if num_vertices == 3:
             shape = 1
@@ -67,17 +91,17 @@ def classify(features):
         else:
 
             area = areas[i]
-            r = 150
+            r = patch_size//2
             # Area check
             perfect_c_area = (r**2)*np.pi
             ratio = area/perfect_c_area
 
             pred_peri = peris[i]
-            perfect_peri = 2*np.pi*150
+            perfect_peri = 2*np.pi*r
 
             ratio_peri = pred_peri/perfect_peri
 
-            if (0.95 <= ratio and ratio <= 1/0.95) and ratio_peri<1.3:
+            if (0.94 <= ratio and ratio <= 1/0.94) and ratio_peri<1.3:
                 shape = 0
             else:
                 shape = 4
