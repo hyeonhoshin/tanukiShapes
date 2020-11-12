@@ -130,6 +130,27 @@ if __name__ == '__main__':
     print("Accuracy = {}".format(pred_acc))
 
 
+    # TA code which is available in this code.
+    """forTA (Do not erase here)
+    test_dir = '../ForTA'
+    test_labels, test_images = [], []
+    for shape in shape_list:
+        print('Getting data for: ', shape)
+        for file_name in os.listdir(os.path.join(test_dir,shape)):
+            test_images.append(cv2.imread(os.path.join(test_dir,shape,file_name), 0))
+            # add an integer to the labels list
+            test_labels.append(shape_list.index(shape))
+
+    print('Number of test images: ', len(test_images))
+
+    test_images, test_labels = preprocess(test_images, test_labels)
+    pred_labels = classify(features)
+    print(pred_labels)
+    pred_acc = np.sum(pred_labels==test_labels)/len(test_labels)*100
+    print("Test Accuracy = {}".format(pred_acc))
+    """
+
+    # Original TA code.
     """forTA (Do not erase here)
     test_dir = '../ForTA'
     test_labels, test_images = [], []
