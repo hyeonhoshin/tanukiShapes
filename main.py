@@ -9,7 +9,7 @@ train_labels, train_images = [], []
 train_dir = './shapes'
 shape_list = ['circle', 'triangle', 'tetragon', 'pentagon', 'other']
 
-patch_size = 32
+patch_size =32
 
 def grab_contours(cnts):
     # if the length the contours tuple returned by cv2.findContours
@@ -41,35 +41,18 @@ def de_stretch(img, cnt):
     '''
 
     img = 255-img #Inverse image
-
-    # Align img
-    ## Extract roated angle and roate
-    center, size, angle = cv2.minAreaRect(cnt)
-
-    R = cv2.getRotationMatrix2D(center, angle, scale=1)
-    img_rotated = cv2.warpAffine(img, R, (300, 300))
-
-    cnts = cv2.findContours(img_rotated.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = grab_contours(cnts)
-
-    # De-stretched img
-    ## Find Bounding box exactly fitted
-    x,y,w,h = cv2.boundingRect(cnts[0])
-    img = img_rotated[y:y+h, x:x+w]
-
-    img = 255-img #Inverse image
-
-    out = cv2.resize(img, dsize=(patch_size, patch_size), interpolation=cv2.INTER_LINEAR)
-    out = np.array(out)
-    
-    # Filtering for denoising (edges have noises)
-    out = cv2.bilateralFilter(out,9,100,100)
+    img = cv2.bilateralFilter(img,9,100,100)
 
     # Feature extration
-    canny = cv2.Canny(out, 100, 255)/255.0  # Calculate boundary using Canny detecter.
-    out = (255-out)/255.0                   # Normalize img to 0 ~ 1
+    canny = cv2.Canny(img, 50, 200)  # Calculate boundary using Canny detecter.
 
-    return np.sum(out), np.sum(canny)
+    # Fitting to elipse
+    pts = np.argwhere(canny>100) # N*2
+    E = cv2.fitEllipse(pts)
+    c_x,x_y = E[0]
+    a,b = E[1]
+
+    return np.pi*a*b/4, np.pi*np.sqrt((a**2+b**2)/2), np.sum(img/255.0), np.sum(canny/255.0) # Elipse area, Elipse peri, Img are, Img peri
 
 # function to preprocess data
 def preprocess(images, labels):
@@ -81,8 +64,10 @@ def preprocess(images, labels):
     Output : features(3 x N), labels(0~4 tuples)
     """
 
-    areas = []
-    peris = []
+    areas_e = []
+    peris_e = []
+    areas_i = []
+    peris_i = []
     vertices = []
     for i, img in enumerate(images):
 
@@ -97,14 +82,16 @@ def preprocess(images, labels):
         approx = cv2.approxPolyDP(cnt, 0.005 * arc, True)
 
         # Extract features and make them scale, rotation invariant.
-        area, peri = de_stretch(img, cnt)
+        area_e, peri_e, area_i, peri_i = de_stretch(img, cnt)
 
         # Save it tuples
-        areas.append(area)
-        peris.append(peri)
+        areas_e.append(area_e)
+        peris_e.append(peri_e)
+        areas_i.append(area_i)
+        peris_i.append(peri_i)
         vertices.append(len(approx))
         
-    return (areas, peris, vertices), labels
+    return (areas_e, areas_i, peris_e, peris_i, vertices), labels
 
 # function to make classifier
 def classify(features):
@@ -116,9 +103,11 @@ def classify(features):
     Output : Predicted labels.
     '''
     # Unizip features
-    areas = features[0]
-    peris = features[1]
-    vertices = features[2]
+    areas_e = features[0]
+    areas_i = features[1]
+    peris_e = features[2]
+    peris_i = features[3]
+    vertices = features[4]
 
     preds = []
     for i, num_vertices in enumerate(vertices):
@@ -135,18 +124,17 @@ def classify(features):
             shape = 4
         else:                   # Many vertices (includes circles and others)
 
-            # Check area is same with pi*r^2
-            area = areas[i]
-            r = patch_size//2
-            perfect_c_area = (r**2)*np.pi
-            ratio = area/perfect_c_area
+            # Check area
+            area_i = areas_i[i]
+            area_e = areas_e[i]
+            r_a = area_i/area_e
 
-            # Check area is same with 2*pi*r
-            pred_peri = peris[i]
-            perfect_peri = 2*np.pi*r
-            ratio_peri = pred_peri/perfect_peri
+            # Check perimeter
+            peri_i = peris_i[i]
+            peri_e = peris_e[i]
+            r_p = peri_i/peri_e
 
-            if (0.94 <= ratio and ratio <= 1/0.94) and ratio_peri<1.3:   # Experience-base determined thresholds.
+            if (0.99 <= r_a and r_a <= 1.01) and (0.92<r_p and r_p<1.08):   # Experience-base determined thresholds.
                 shape = 0
             else:
                 shape = 4
@@ -174,7 +162,7 @@ if __name__ == '__main__':
     print("Accuracy = {}".format(pred_acc))
 
     # TA code which is available in this code.
-    """forTA (Do not erase here)
+    #forTA (Do not erase here)
     test_dir = '../ForTA'
     test_labels, test_images = [], []
     for shape in shape_list:
@@ -191,7 +179,7 @@ if __name__ == '__main__':
     print(pred_labels)
     pred_acc = np.sum(pred_labels==test_labels)/len(test_labels)*100
     print("Test Accuracy = {}".format(pred_acc))
-    """
+
 
     # Original TA code.
     """forTA (Do not erase here)
