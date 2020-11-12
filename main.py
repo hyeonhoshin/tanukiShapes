@@ -73,20 +73,30 @@ def de_stretch(img, cnt):
 
 # function to preprocess data
 def preprocess(images, labels):
+    """
+    Extract Scale, Rotation invariant features.
+    Number of vertices, area of patches, perimeter of patches
+    """
+
     areas = []
     peris = []
     vertices = []
     for i, img in enumerate(images):
+
+        # Find Contours
         thresh = cv2.threshold(img, 60, 255, cv2.THRESH_BINARY_INV)[1]
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = grab_contours(cnts)
         cnt = cnts[0]
 
+        # Approximate it.
         arc = cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt, 0.005 * arc, True)
 
+        # Extract features and make them scale, rotation invariant.
         area, peri = de_stretch(img, cnt)
 
+        # Save it tuples
         areas.append(area)
         peris.append(peri)
         vertices.append(len(approx))
