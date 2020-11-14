@@ -79,7 +79,7 @@ def preprocess(images, labels):
 
         # Approximate it.
         arc = cv2.arcLength(cnt, True)
-        approx = cv2.approxPolyDP(cnt, 0.005 * arc, True)
+        approx = cv2.approxPolyDP(cnt, 0.01 * arc, True)
 
         # Extract features and make them scale, rotation invariant.
         area_e, peri_e, area_i, peri_i = de_stretch(img, cnt)
@@ -111,7 +111,6 @@ def classify(features):
 
     preds = []
     for i, num_vertices in enumerate(vertices):
-        print("Classfies in...",i)
         
         if num_vertices == 3: # Triangle
             shape = 1
@@ -134,13 +133,17 @@ def classify(features):
             peri_e = peris_e[i]
             r_p = peri_i/peri_e
 
-            if (0.99 <= r_a and r_a <= 1.01) and (0.92<r_p and r_p<1.08):   # Experience-base determined thresholds.
+            print("{}th\tr_a={:.3f},\tr_p={:.3f}".format(i,r_a,r_p))
+            
+
+            if (0.992 <= r_a and r_a <= 1.015) and (0.91<=r_p and r_p<=1.25):   # Experience-base determined thresholds.
                 shape = 0
             else:
                 shape = 4
         
         # return the name of the shape
         preds.append(shape)
+    print(preds)
     return np.array(preds)
 
 if __name__ == '__main__':
@@ -163,6 +166,7 @@ if __name__ == '__main__':
 
     # TA code which is available in this code.
     #forTA (Do not erase here)
+
     test_dir = '../ForTA'
     test_labels, test_images = [], []
     for shape in shape_list:
@@ -174,7 +178,7 @@ if __name__ == '__main__':
 
     print('Number of test images: ', len(test_images))
 
-    test_images, test_labels = preprocess(test_images, test_labels)
+    features, test_labels = preprocess(test_images, test_labels)
     pred_labels = classify(features)
     print(pred_labels)
     pred_acc = np.sum(pred_labels==test_labels)/len(test_labels)*100
