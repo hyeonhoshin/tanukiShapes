@@ -140,7 +140,6 @@ def classify(features):
 
             print("{}th\tr_a={:.3f},\tr_p={:.3f}".format(i,r_a,r_p))
             
-
             if (0.992 <= r_a and r_a <= 1.015) and (0.91<=r_p and r_p<=1.25):   # Experience-base determined thresholds.
                 shape = 0
             else:
@@ -171,8 +170,8 @@ if __name__ == '__main__':
     pred_acc = np.sum(pred_labels==train_labels)/len(train_labels)*100
     print("Accuracy = {}".format(pred_acc))
 
-    # TA code which is available in this code.
-    """
+    # ------------- Pre-made TA code which I made for convenience -------------
+    '''
     #forTA (Do not erase here)
     test_dir = '../ForTA'
     test_labels, test_images = [], []
@@ -190,7 +189,8 @@ if __name__ == '__main__':
     print(pred_labels)
     pred_acc = np.sum(pred_labels==test_labels)/len(test_labels)*100
     print("Test Accuracy = {}".format(pred_acc))
-    """
+    '''
+
     # Original TA code.
     """forTA (Do not erase here)
     test_dir = '../ForTA'
