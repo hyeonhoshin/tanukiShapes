@@ -61,7 +61,8 @@ def de_stretch(img, cnt):
     # De-stretched img
     ## Find Bounding box exactly fitted
     x,y,w,h = cv2.boundingRect(cnts[0])
-    img = img_rotated[y-2:y+h+2, x-2:x+w+2]
+    img_pad = np.pad(img_rotated,2,constant_values=0)
+    img = img_pad[y:y+h+4, x:x+w+4]
 
     img = 255-img #Inverse image
 
@@ -100,7 +101,7 @@ def preprocess(images, labels):
 
         # Approximate it.
         arc = cv2.arcLength(cnt, True)
-        approx = cv2.approxPolyDP(cnt, 0.005 * arc, True)
+        approx = cv2.approxPolyDP(cnt, 0.01 * arc, True)
 
         # Extract features and make them scale, rotation invariant.
         area, peri = de_stretch(img, cnt)
@@ -152,7 +153,7 @@ def classify(features):
             perfect_peri = 2*np.pi*r
             ratio_peri = pred_peri/perfect_peri
 
-            # print("{}th perimeter = {}, area = {}".format(i,ratio_peri,ratio_area))
+            print("{}th perimeter = {}, area = {}".format(i,ratio_peri,ratio_area))
 
             if (0.75 <= ratio_area and ratio_area <= 0.95) and (0.95<ratio_peri and ratio_peri<1.09):   # Experience-base determined thresholds.
                 shape = 0
@@ -184,7 +185,7 @@ if __name__ == '__main__':
     print("Accuracy = {}".format(pred_acc))
 
     # Pre-made TA code which I made for convenience.
-    """
+
     # forTA (Do not erase here)
     test_dir = '../ForTA'
     test_labels, test_images = [], []
@@ -197,12 +198,12 @@ if __name__ == '__main__':
 
     print('Number of test images: ', len(test_images))
 
-    test_images, test_labels = preprocess(test_images, test_labels)
+    features, test_labels = preprocess(test_images, test_labels)
     pred_labels = classify(features)
     print(pred_labels)
     pred_acc = np.sum(pred_labels==test_labels)/len(test_labels)*100
     print("Test Accuracy = {}".format(pred_acc))
-    """
+
 
     # Original TA code.
     """forTA (Do not erase here)
