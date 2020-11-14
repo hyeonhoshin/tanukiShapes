@@ -9,6 +9,13 @@ shape_list = ['circle', 'triangle', 'tetragon', 'pentagon', 'other']
 
 patch_size = 32
 
+def translate(image, x, y):
+    # define the translation matrix and perform the translation
+    M = np.float32([[1, 0, x], [0, 1, y]])
+    shifted = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
+
+    # return the translated image
+    return shifted
 def grab_contours(cnts):
     # if the length the contours tuple returned by cv2.findContours
     # is '2' then we are using either OpenCV v2.4, v4-beta, or
@@ -43,8 +50,9 @@ def de_stretch(img, cnt):
     # Align img
     ## Extract roated angle and roate
     center, size, angle = cv2.minAreaRect(cnt)
+    img = translate(img,150-center[0],150-center[1])
 
-    R = cv2.getRotationMatrix2D(center, angle, scale=1)
+    R = cv2.getRotationMatrix2D((150, 150), angle, scale=1)
     img_rotated = cv2.warpAffine(img, R, (300, 300))
 
     cnts = cv2.findContours(img_rotated.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -53,7 +61,7 @@ def de_stretch(img, cnt):
     # De-stretched img
     ## Find Bounding box exactly fitted
     x,y,w,h = cv2.boundingRect(cnts[0])
-    img = img_rotated[y:y+h, x:x+w]
+    img = img_rotated[y-2:y+h+2, x-2:x+w+2]
 
     img = 255-img #Inverse image
 
@@ -61,7 +69,7 @@ def de_stretch(img, cnt):
     out = np.array(out)
     
     # Filtering for denoising (edges have noises)
-    out = cv2.bilateralFilter(out,9,100,100)
+    out = cv2.bilateralFilter(out,9,25,25)
 
     # Feature extration
     canny = cv2.Canny(out, 100, 255)/255.0  # Calculate boundary using Canny detecter.
@@ -137,14 +145,16 @@ def classify(features):
             area = areas[i]
             r = patch_size//2
             perfect_c_area = (r**2)*np.pi
-            ratio = area/perfect_c_area
+            ratio_area = area/perfect_c_area
 
             # Check area is same with 2*pi*r
             pred_peri = peris[i]
             perfect_peri = 2*np.pi*r
             ratio_peri = pred_peri/perfect_peri
 
-            if (0.94 <= ratio and ratio <= 1/0.94) and ratio_peri<1.3:   # Experience-base determined thresholds.
+            # print("{}th perimeter = {}, area = {}".format(i,ratio_peri,ratio_area))
+
+            if (0.75 <= ratio_area and ratio_area <= 0.95) and (0.95<ratio_peri and ratio_peri<1.09):   # Experience-base determined thresholds.
                 shape = 0
             else:
                 shape = 4
