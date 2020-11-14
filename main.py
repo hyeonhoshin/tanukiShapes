@@ -39,10 +39,10 @@ def grab_contours(cnts):
     # return the actual contours array
     return cnts
 
-def get_features(img, cnt):
+def get_features(img):
     '''
-    Input : Grayscaled, white background img, and contours
-    Output : Aligned (Unroated) and De-streteched image
+    Input : Grayscaled, white background img
+    Output : Elipse area, Elipse perimeter, Img area, Img perimeter
     '''
 
     img = 255-img #Inverse image
@@ -57,7 +57,7 @@ def get_features(img, cnt):
     E = cv2.fitEllipse(pts)
     a,b = E[1]
 
-    return np.pi*a*b/4, np.pi*np.sqrt((a**2+b**2)/2), np.sum(img/255.0), np.sum(canny/255.0) # Elipse area, Elipse peri, Img are, Img peri
+    return np.pi*a*b/4, np.pi*np.sqrt((a**2+b**2)/2), np.sum(img/255.0), np.sum(canny/255.0) 
 
 # function to preprocess data
 def preprocess(images, labels):
@@ -87,7 +87,7 @@ def preprocess(images, labels):
         approx = cv2.approxPolyDP(cnt, 0.01 * arc, True)
 
         # Extract features and make them scale, rotation invariant.
-        area_e, peri_e, area_i, peri_i = get_features(img, cnt)
+        area_e, peri_e, area_i, peri_i = get_features(img)
 
         # Save it tuples
         areas_e.append(area_e)
