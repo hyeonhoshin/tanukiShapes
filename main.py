@@ -39,7 +39,7 @@ def grab_contours(cnts):
     # return the actual contours array
     return cnts
 
-def de_stretch(img, cnt):
+def get_features(img, cnt):
     '''
     Input : Grayscaled, white background img, and contours
     Output : Aligned (Unroated) and De-streteched image
@@ -53,8 +53,8 @@ def de_stretch(img, cnt):
 
     # Fitting to elipse
     pts = np.argwhere(canny>100) # N*2
+    pts[:,[0,1]] = pts[:,[1,0]] # Swap x and y.
     E = cv2.fitEllipse(pts)
-    c_x,x_y = E[0]
     a,b = E[1]
 
     return np.pi*a*b/4, np.pi*np.sqrt((a**2+b**2)/2), np.sum(img/255.0), np.sum(canny/255.0) # Elipse area, Elipse peri, Img are, Img peri
@@ -87,7 +87,7 @@ def preprocess(images, labels):
         approx = cv2.approxPolyDP(cnt, 0.01 * arc, True)
 
         # Extract features and make them scale, rotation invariant.
-        area_e, peri_e, area_i, peri_i = de_stretch(img, cnt)
+        area_e, peri_e, area_i, peri_i = get_features(img, cnt)
 
         # Save it tuples
         areas_e.append(area_e)
